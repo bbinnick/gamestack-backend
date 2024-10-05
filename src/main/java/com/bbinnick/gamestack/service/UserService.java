@@ -7,8 +7,8 @@ import com.bbinnick.gamestack.model.User;
 public interface UserService {
 
 	User saveUser(User user);
-	
-	List<User> getUsers();
+
+	List<User> getAllUsers();
 
 	User getUserById(Long id);
 

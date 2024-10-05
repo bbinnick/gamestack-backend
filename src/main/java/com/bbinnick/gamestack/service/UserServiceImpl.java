@@ -3,10 +3,12 @@ package com.bbinnick.gamestack.service;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import com.bbinnick.gamestack.model.User;
 import com.bbinnick.gamestack.repository.UserRepository;
 
+@Service 
 public class UserServiceImpl implements UserService {
 
 	@Autowired
@@ -18,7 +20,7 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public List<User> getUsers() {
+	public List<User> getAllUsers() {
 		return userRepo.findAll();
 	}
 

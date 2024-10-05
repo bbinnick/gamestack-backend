@@ -25,17 +25,14 @@ class UserRepositoryTests {
 
 	// test methods go below
 	@Test
-	public void testCreateUser() {
+	void testCreateUser() {
 		User user = new User();
 		user.setEmail("binnick@gmail.com");
 		user.setPassword("capstone");
 		user.setFirstName("Brandon");
 		user.setLastName("Binnick");
-
 		User savedUser = repo.save(user);
-
 		User existUser = entityManager.find(User.class, savedUser.getId());
-
 		assertEquals(user.getFirstName(), existUser.getFirstName());
 
 	}
