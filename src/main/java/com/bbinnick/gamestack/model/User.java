@@ -1,4 +1,4 @@
-package com.bbinnick.gamestack.entity;
+package com.bbinnick.gamestack.model;
  
 import jakarta.persistence.*;
 import lombok.Getter;
