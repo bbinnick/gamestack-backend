@@ -3,6 +3,7 @@ package com.bbinnick.gamestack.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -15,6 +16,7 @@ import com.bbinnick.gamestack.service.UserService;
 
 @RestController
 @RequestMapping("/users")
+@CrossOrigin
 public class UserController {
 
 	@Autowired
