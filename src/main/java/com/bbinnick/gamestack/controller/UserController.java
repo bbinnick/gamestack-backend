@@ -25,11 +25,24 @@ public class UserController {
 	@Autowired
 	private UserService userService;
 
+	// consider creating a separate class for exception handling
 	@PostMapping("/register")
 	public User registerUser(@RequestBody User user) {
 		try {
-			if (user.getFirstName() == null || user.getFirstName().isEmpty()) {
-				throw new IllegalArgumentException("First name is required");
+			if (user.getUsername() == null || user.getUsername().isEmpty()) {
+				throw new IllegalArgumentException("Username is required");
+			}
+			if (userService.getUserByUsername(user.getUsername()) != null) {
+				throw new IllegalArgumentException("Username is already in use");
+			}
+			if (user.getEmail() == null || user.getEmail().isEmpty()) {
+				throw new IllegalArgumentException("Email is required");
+			}
+			if (userService.getUserByEmail(user.getEmail()) != null) {
+				throw new IllegalArgumentException("Email is already in use");
+			}
+			if (user.getPassword() == null || user.getPassword().isEmpty()) {
+				throw new IllegalArgumentException("Password is required");
 			}
 			return userService.saveUser(user);
 		} catch (IllegalArgumentException e) {

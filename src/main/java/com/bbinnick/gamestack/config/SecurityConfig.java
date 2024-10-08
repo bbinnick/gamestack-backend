@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
@@ -18,7 +19,7 @@ public class SecurityConfig {
 
 
 	@Bean
-	public FilterRegistrationBean<CorsFilter> corsFilter() {
+	FilterRegistrationBean<CorsFilter> corsFilter() {
 		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 		CorsConfiguration config = new CorsConfiguration();
 		config.setAllowCredentials(true);
@@ -34,6 +35,11 @@ public class SecurityConfig {
 		// Very important, this filter has to be registered with a lower priority than the WebMvc
 		bean.setOrder(-102);
 		return bean;
+	}
+	
+	@Bean
+	BCryptPasswordEncoder passwordEncoder() {
+	    return new BCryptPasswordEncoder();
 	}
 	
 }

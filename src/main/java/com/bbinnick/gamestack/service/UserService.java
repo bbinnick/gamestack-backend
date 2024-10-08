@@ -16,5 +16,7 @@ public interface UserService {
 
 	User getUserByEmail(String email);
 
+	User getUserByUsername(String username);
+
 	User updateUser(User user);
 }

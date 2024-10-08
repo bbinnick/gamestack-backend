@@ -3,19 +3,23 @@ package com.bbinnick.gamestack.service;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.bbinnick.gamestack.model.User;
 import com.bbinnick.gamestack.repository.UserRepository;
 
-@Service 
+@Service
 public class UserServiceImpl implements UserService {
 
 	@Autowired
 	private UserRepository userRepo;
+	@Autowired
+	private BCryptPasswordEncoder passwordEncoder;
 
 	@Override
 	public User saveUser(User user) {
+		user.setPassword(passwordEncoder.encode(user.getPassword()));
 		return userRepo.save(user);
 	}
 
@@ -37,6 +41,11 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public User getUserByEmail(String email) {
 		return userRepo.findByEmail(email);
+	}
+
+	@Override
+	public User getUserByUsername(String username) {
+		return userRepo.findByUsername(username);
 	}
 
 	@Override
