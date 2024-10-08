@@ -14,9 +14,12 @@ import org.springframework.web.bind.annotation.RestController;
 import com.bbinnick.gamestack.model.User;
 import com.bbinnick.gamestack.service.UserService;
 
+import lombok.extern.slf4j.Slf4j;
+
 @RestController
 @RequestMapping("/users")
 @CrossOrigin
+@Slf4j
 public class UserController {
 
 	@Autowired
@@ -24,8 +27,15 @@ public class UserController {
 
 	@PostMapping("/register")
 	public User registerUser(@RequestBody User user) {
-		// "New user registered successfully"
-		return userService.saveUser(user);
+		try {
+			if (user.getFirstName() == null || user.getFirstName().isEmpty()) {
+				throw new IllegalArgumentException("First name is required");
+			}
+			return userService.saveUser(user);
+		} catch (IllegalArgumentException e) {
+			log.error("Error registering user: {}", user, e);
+			throw e;
+		}
 	}
 
 	@GetMapping("/getAll")

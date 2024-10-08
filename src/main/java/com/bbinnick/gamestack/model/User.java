@@ -25,4 +25,15 @@ public class User {
      
     @Column(name = "last_name", nullable = false, length = 20)
     private String lastName;    
+    
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", email='" + email + '\'' +
+                ", password='" + password + '\'' +
+                ", firstName='" + firstName + '\'' +
+                ", lastName='" + lastName + '\'' +
+                '}';
+    }
 }
