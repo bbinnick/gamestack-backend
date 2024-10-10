@@ -3,6 +3,7 @@ package com.bbinnick.gamestack.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.bbinnick.gamestack.model.User;
+import com.bbinnick.gamestack.model.UserDTO;
 import com.bbinnick.gamestack.service.UserService;
 
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +26,8 @@ public class UserController {
 
 	@Autowired
 	private UserService userService;
+	@Autowired
+	private BCryptPasswordEncoder passwordEncoder;
 
 	// consider creating a separate class for exception handling
 	@PostMapping("/register")
@@ -51,6 +55,19 @@ public class UserController {
 		}
 	}
 
+	@PostMapping("/login")
+	public UserDTO loginUser(@RequestBody User user) {
+		User existingUser = userService.getUserByEmail(user.getEmail());
+		if (existingUser == null || !passwordEncoder.matches(user.getPassword(), existingUser.getPassword())) {
+			throw new IllegalArgumentException("Invalid email or password");
+		}
+		UserDTO userDTO = new UserDTO();
+		userDTO.setId(existingUser.getId());
+		userDTO.setUsername(existingUser.getUsername());
+		userDTO.setEmail(existingUser.getEmail());
+		return userDTO;
+	}
+
 	@GetMapping("/getAll")
 	public List<User> getAllUsers() {
 		// "All users retrieved successfully"
@@ -67,12 +84,6 @@ public class UserController {
 	public void deleteUser(@RequestBody User user) {
 		// "User deleted successfully"
 		userService.deleteUser(user.getId());
-	}
-
-	@PostMapping("/login")
-	public User loginUser(@RequestBody User user) {
-		// "User logged in successfully"
-		return userService.getUserByEmail(user.getEmail());
 	}
 
 	@PutMapping("/update")
