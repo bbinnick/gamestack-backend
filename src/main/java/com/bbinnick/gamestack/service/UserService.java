@@ -18,5 +18,6 @@ public interface UserService {
 
 	User getUserByUsername(String username);
 
+	// maybe not needed
 	User updateUser(User user);
 }
