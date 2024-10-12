@@ -32,7 +32,7 @@ public class UserServiceImpl implements UserDetailsService {
 
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-		User user = userRepo.findByEmail(username);
+		User user = userRepo.findByUsername(username);
 		if (user == null) {
 			log.error("User not found with this email: {}", username);
 			throw new UsernameNotFoundException("User not found with this email" + username);
@@ -66,23 +66,7 @@ public class UserServiceImpl implements UserDetailsService {
 		return userRepo.findAll();
 	}
 
-	public User getUserById(Long id) {
-		return userRepo.findById(id).orElse(null);
-	}
-
 	public void deleteUser(Long id) {
 		userRepo.deleteById(id);
-	}
-
-	public User getUserByEmail(String email) {
-		return userRepo.findByEmail(email);
-	}
-
-	public User getUserByUsername(String username) {
-		return userRepo.findByUsername(username);
-	}
-
-	public User updateUser(User user) {
-		return userRepo.save(user);
 	}
 }

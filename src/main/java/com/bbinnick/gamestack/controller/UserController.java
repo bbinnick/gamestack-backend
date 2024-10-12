@@ -1,11 +1,16 @@
 package com.bbinnick.gamestack.controller;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -36,54 +41,39 @@ public class UserController {
 	
 	@PostMapping("/register")
 	public ResponseEntity<AuthResponse> createAccount(@RequestBody User user) {
-		String username = user.getUsername();
-		String email = user.getEmail();
-		String password = user.getPassword();
-		String role = user.getRole();
+	    User isEmailExisting = userRepository.findByEmail(user.getEmail());
+	    User isUsernameExisting = userRepository.findByUsername(user.getUsername()); 
+	    if (isEmailExisting != null) {
+	        return new ResponseEntity<>(new AuthResponse(null, "Email Is Already Used With Another Account", false, null), HttpStatus.BAD_REQUEST);
+	    }
+	    if (isUsernameExisting != null) {
+	        return new ResponseEntity<>(new AuthResponse(null, "Username Is Already Used With Another Account", false, null), HttpStatus.BAD_REQUEST);
+	    }
+	    user.setPassword(passwordEncoder.encode(user.getPassword()));
+	    User savedUser = userRepository.save(user);
+	    log.info("User registered successfully: {}", savedUser);
+	    
+	    List<GrantedAuthority> authorities = new ArrayList<>();
+	    authorities.add(new SimpleGrantedAuthority("ROLE_" + savedUser.getRole().toUpperCase()));
 
-		User isEmailExisting = userRepository.findByEmail(email);
-		if (isEmailExisting != null) {
-			AuthResponse authResponse = new AuthResponse();
-			authResponse.setMessage("Email Is Already Used With Another Account");
-			authResponse.setStatus(false);
-			return new ResponseEntity<>(authResponse, HttpStatus.BAD_REQUEST);
-		}
-		User createdUser = new User();
-		createdUser.setUsername(username);
-		createdUser.setEmail(email);
-		createdUser.setRole(role);
-		createdUser.setPassword(passwordEncoder.encode(password));
-
-		User savedUser = userRepository.save(createdUser);
-		userRepository.save(savedUser);
-		Authentication authentication = new UsernamePasswordAuthenticationToken(username, password);
-		SecurityContextHolder.getContext().setAuthentication(authentication);
-		String token = JwtProvider.generateToken(authentication);
-
-		AuthResponse authResponse = new AuthResponse();
-		authResponse.setJwt(token);
-		authResponse.setMessage("Register Success");
-		authResponse.setStatus(true);
-		return new ResponseEntity<>(authResponse, HttpStatus.OK);
-
-	}
-
-	@PostMapping("/login")
-	public ResponseEntity<AuthResponse> signin(@RequestBody User loginRequest) {
-		String email = loginRequest.getEmail();
-	    String username = loginRequest.getUsername();
-	    String password = loginRequest.getPassword();
-	    Authentication authentication = authenticate(email, password);
+	    Authentication authentication = new UsernamePasswordAuthenticationToken(savedUser.getUsername(), savedUser.getPassword(), authorities);
 	    SecurityContextHolder.getContext().setAuthentication(authentication);
 	    String token = JwtProvider.generateToken(authentication);
-	    AuthResponse authResponse = new AuthResponse();
-	    authResponse.setMessage("Login success");
-	    authResponse.setJwt(token);
-	    authResponse.setStatus(true);
-	    authResponse.setUsername(username);
+
+	    AuthResponse authResponse = new AuthResponse(token, "Register Success", true, user.getUsername());
 	    return new ResponseEntity<>(authResponse, HttpStatus.OK);
 	}
 
+	@PostMapping("/login")
+	public ResponseEntity<AuthResponse> signIn(@RequestBody User loginRequest) {
+	    Authentication authentication = authenticate(loginRequest.getEmail(), loginRequest.getPassword());
+	    SecurityContextHolder.getContext().setAuthentication(authentication);
+	    String token = JwtProvider.generateToken(authentication);
+
+	    AuthResponse authResponse = new AuthResponse(token, "Login success", true, loginRequest.getUsername());
+	    return new ResponseEntity<>(authResponse, HttpStatus.OK);
+	}
+	
 	private Authentication authenticate(String email, String password) {
 	    UserDetails userDetails = customUserDetails.loadUserByEmail(email);
 	    if (userDetails == null) {
@@ -143,24 +133,11 @@ public class UserController {
 		return userService.getAllUsers();
 	}
 
-	@GetMapping("/get")
-	public User getUser(@RequestBody User user) {
-		// "User retrieved successfully"
-		return userService.getUserById(user.getId());
-	}
-
 	@PutMapping("/delete")
 	public void deleteUser(@RequestBody User user) {
 		// "User deleted successfully"
 		userService.deleteUser(user.getId());
 	}
-
-	@PutMapping("/update")
-	public User updateUser(@RequestBody User user) {
-		// "User updated successfully"
-		return userService.updateUser(user);
-	}
-	
 	*/
 
 }

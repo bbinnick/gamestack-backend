@@ -26,7 +26,6 @@ public class JwtProvider {
 		String jwt = Jwts.builder().setIssuedAt(new Date()).setExpiration(new Date(new Date().getTime() + 86400000))
 				.claim("username", auth.getName())
 				.claim("authorities", roles).signWith(key).compact();
-		log.info("Token for parsing in JwtProvider: {}", jwt);
 		return jwt;
 	}
 
