@@ -37,10 +37,24 @@ public class UserServiceImpl implements UserDetailsService {
 			log.error("User not found with this email: {}", username);
 			throw new UsernameNotFoundException("User not found with this email" + username);
 		}
-		log.info("Loaded user: {}, Role: {}", user.getUsername(), user.getRole());
+		log.info("Loaded user: {}, Email: {}, Role: {}", user.getUsername(), user.getEmail(), user.getRole());
 		List<GrantedAuthority> authorities = new ArrayList<>();
 		authorities.add(new SimpleGrantedAuthority("ROLE_" + user.getRole().toUpperCase()));
-		return new org.springframework.security.core.userdetails.User(user.getUsername(), user.getPassword(), authorities);
+		return new org.springframework.security.core.userdetails.User(user.getUsername(), user.getPassword(),
+				authorities);
+	}
+
+	public UserDetails loadUserByEmail(String email) {
+		User user = userRepo.findByEmail(email);
+		if (user == null) {
+			log.error("User not found with this email: {}", email);
+			throw new UsernameNotFoundException("User not found with this email" + email);
+		}
+		log.info("Loaded Username: {}, Email: {}, Role: {}", user.getUsername(), user.getEmail(), user.getRole());
+		List<GrantedAuthority> authorities = new ArrayList<>();
+		authorities.add(new SimpleGrantedAuthority("ROLE_" + user.getRole().toUpperCase()));
+		return new org.springframework.security.core.userdetails.User(user.getUsername(), user.getPassword(),
+				authorities);
 	}
 
 	public User saveUser(User user) {

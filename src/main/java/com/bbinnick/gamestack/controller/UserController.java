@@ -35,7 +35,7 @@ public class UserController {
 	private UserServiceImpl customUserDetails;	
 	
 	@PostMapping("/register")
-	public ResponseEntity<AuthResponse> createUserHandler(@RequestBody User user) {
+	public ResponseEntity<AuthResponse> createAccount(@RequestBody User user) {
 		String username = user.getUsername();
 		String email = user.getEmail();
 		String password = user.getPassword();
@@ -56,7 +56,7 @@ public class UserController {
 
 		User savedUser = userRepository.save(createdUser);
 		userRepository.save(savedUser);
-		Authentication authentication = new UsernamePasswordAuthenticationToken(email, password);
+		Authentication authentication = new UsernamePasswordAuthenticationToken(username, password);
 		SecurityContextHolder.getContext().setAuthentication(authentication);
 		String token = JwtProvider.generateToken(authentication);
 
@@ -70,33 +70,31 @@ public class UserController {
 
 	@PostMapping("/login")
 	public ResponseEntity<AuthResponse> signin(@RequestBody User loginRequest) {
-		String username = loginRequest.getEmail();
-		String password = loginRequest.getPassword();
-		Authentication authentication = authenticate(username, password);
-		SecurityContextHolder.getContext().setAuthentication(authentication);
-		String token = JwtProvider.generateToken(authentication);
-		AuthResponse authResponse = new AuthResponse();
-		authResponse.setMessage("Login success");
-		authResponse.setJwt(token);
-		authResponse.setStatus(true);
-		
-		return new ResponseEntity<>(authResponse, HttpStatus.OK);
+		String email = loginRequest.getEmail();
+	    String username = loginRequest.getUsername();
+	    String password = loginRequest.getPassword();
+	    Authentication authentication = authenticate(email, password);
+	    SecurityContextHolder.getContext().setAuthentication(authentication);
+	    String token = JwtProvider.generateToken(authentication);
+	    AuthResponse authResponse = new AuthResponse();
+	    authResponse.setMessage("Login success");
+	    authResponse.setJwt(token);
+	    authResponse.setStatus(true);
+	    authResponse.setUsername(username);
+	    return new ResponseEntity<>(authResponse, HttpStatus.OK);
 	}
 
-	private Authentication authenticate(String username, String password) {
-
-		log.info("Username: {} Password: {}", username, password);
-		UserDetails userDetails = customUserDetails.loadUserByUsername(username);
-		if (userDetails == null) {
-			log.error("Sign in details - null {}", userDetails);
-			throw new BadCredentialsException("Invalid username and password");
-		}
-		if (!passwordEncoder.matches(password, userDetails.getPassword())) {
-			log.error("Sign in userDetails - password mismatch {}", userDetails);
-			throw new BadCredentialsException("Invalid password");
-		}
-		return new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-
+	private Authentication authenticate(String email, String password) {
+	    UserDetails userDetails = customUserDetails.loadUserByEmail(email);
+	    if (userDetails == null) {
+	        log.error("Sign in details - null {}", userDetails);
+	        throw new BadCredentialsException("Invalid email and password");
+	    }
+	    if (!passwordEncoder.matches(password, userDetails.getPassword())) {
+	        log.error("Sign in userDetails - password mismatch {}", userDetails);
+	        throw new BadCredentialsException("Invalid password");
+	    }
+	    return new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 	}
 	
 	// consider creating a separate class for exception handling

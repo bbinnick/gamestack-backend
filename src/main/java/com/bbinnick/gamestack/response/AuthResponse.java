@@ -13,4 +13,5 @@ public class AuthResponse {
 	private String jwt;
 	private String message;
 	private Boolean status;
+	private String username;
 }
