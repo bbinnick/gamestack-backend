@@ -46,6 +46,9 @@ public class UserController {
 	    if (isEmailExisting != null) {
 	        return new ResponseEntity<>(new AuthResponse(null, "Email Is Already Used With Another Account", false, null), HttpStatus.BAD_REQUEST);
 	    }
+		if ( user.getUsername() == null || user.getUsername().isEmpty() ) {
+			return new ResponseEntity<>(new AuthResponse(null, "Username Is Required", false, null), HttpStatus.BAD_REQUEST);
+		}
 	    if (isUsernameExisting != null) {
 	        return new ResponseEntity<>(new AuthResponse(null, "Username Is Already Used With Another Account", false, null), HttpStatus.BAD_REQUEST);
 	    }
