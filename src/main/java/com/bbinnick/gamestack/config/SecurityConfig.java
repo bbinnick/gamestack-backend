@@ -18,42 +18,40 @@ import java.util.Collections;
 @Configuration
 public class SecurityConfig {
 
-    @SuppressWarnings("deprecation")
-    @Bean
-    SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeRequests(
-                        authorize -> authorize.requestMatchers("/api/**")
-                        .authenticated().anyRequest().permitAll())
-                .addFilterBefore(new JwtTokenValidator(), BasicAuthenticationFilter.class)
-                .csrf(csrf -> csrf.disable())
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()));
-                //.httpBasic(Customizer.withDefaults())
-                //.formLogin(Customizer.withDefaults());
-        return http.build();
-    }
+	@Bean
+	SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+		http.sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+				.authorizeHttpRequests(authorize -> authorize
+						// Public endpoints
+						.requestMatchers("/users/register", "/users/login").permitAll()
+						// Protected endpoints
+						.requestMatchers("/games/**").hasRole("USER")
+						// Admin-specific rules
+						.requestMatchers("/admin/**").hasRole("ADMIN").anyRequest().authenticated())
+				.addFilterBefore(new JwtTokenValidator(), BasicAuthenticationFilter.class)
+				.csrf(csrf -> csrf.disable())
+				.cors(cors -> cors.configurationSource(corsConfigurationSource()));
+		return http.build();
+	}
 
-    private CorsConfigurationSource corsConfigurationSource() {
-        return new CorsConfigurationSource() {
-            @Override
-            public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
-                CorsConfiguration ccfg = new CorsConfiguration();
-                ccfg.setAllowedOrigins(Arrays.asList("http://localhost:3000"));
-                ccfg.setAllowedMethods(Collections.singletonList("*"));
-                ccfg.setAllowCredentials(true);
-                ccfg.setAllowedHeaders(Collections.singletonList("*"));
-                ccfg.setExposedHeaders(Arrays.asList("Authorization"));
-                ccfg.setMaxAge(3600L);
-                return ccfg;
+	private CorsConfigurationSource corsConfigurationSource() {
+		return new CorsConfigurationSource() {
+			@Override
+			public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
+				CorsConfiguration ccfg = new CorsConfiguration();
+				ccfg.setAllowedOrigins(Collections.singletonList("http://localhost:3000"));
+				ccfg.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE"));
+				ccfg.setAllowCredentials(true);
+				ccfg.setAllowedHeaders(Collections.singletonList("*"));
+				ccfg.setExposedHeaders(Arrays.asList("Authorization"));
+				ccfg.setMaxAge(3600L);
+				return ccfg;
+			}
+		};
+	}
 
-            }
-        };
-
-    }
-
-    @Bean
-    PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
-
+	@Bean
+	public PasswordEncoder passwordEncoder() {
+		return new BCryptPasswordEncoder();
+	}
 }

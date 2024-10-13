@@ -15,14 +15,12 @@ public class GameService {
 
 	@Autowired
 	private GameRepository gameRepository;
-
 	@Autowired
 	private UserRepository userRepository;
 
 	public Game addGame(Game game, Principal principal) {
-		// Fetch the logged-in user by principal
 		User user = userRepository.findByUsername(principal.getName());
-		game.setUser(user); // Assuming Game has a relationship with User
+		game.setUser(user);
 		return gameRepository.save(game);
 	}
 }
