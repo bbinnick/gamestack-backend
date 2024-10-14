@@ -1,62 +1,12 @@
 {"properties": [
   {
-    "name": "spring.security.filter.chain.content-negotiation.parameter-strategy",
+    "name": "jwt.secret",
     "type": "java.lang.String",
-    "description": "A description for 'spring.security.filter.chain.content-negotiation.parameter-strategy'"
+    "description": "A description for 'jwt.secret'"
   },
   {
-    "name": "spring.security.filter.chain.request-matcher.path.authenticated",
+    "name": "jwt.expiration",
     "type": "java.lang.String",
-    "description": "A description for 'spring.security.filter.chain.request-matcher.path.authenticated'"
-  },
-  {
-    "name": "spring.security.filter.chain.any-request.authorized",
-    "type": "java.lang.String",
-    "description": "A description for 'spring.security.filter.chain.any-request.authorized'"
-  },
-  {
-    "name": "spring.security.filter.chain.request-matcher.path.pattern",
-    "type": "java.lang.String",
-    "description": "A description for 'spring.security.filter.chain.request-matcher.path.pattern'"
-  },
-  {
-    "name": "spring.security.csrf.disabled",
-    "type": "java.lang.String",
-    "description": "A description for 'spring.security.csrf.disabled'"
-  },
-  {
-    "name": "spring.security.cors.configurationSource.allowedOrigins",
-    "type": "java.lang.String",
-    "description": "A description for 'spring.security.cors.configurationSource.allowedOrigins'"
-  },
-  {
-    "name": "spring.security.cors.configurationSource.allowedMethods",
-    "type": "java.lang.String",
-    "description": "A description for 'spring.security.cors.configurationSource.allowedMethods'"
-  },
-  {
-    "name": "spring.security.cors.configurationSource.allowCredentials",
-    "type": "java.lang.String",
-    "description": "A description for 'spring.security.cors.configurationSource.allowCredentials'"
-  },
-  {
-    "name": "spring.security.cors.configurationSource.maxAge",
-    "type": "java.lang.String",
-    "description": "A description for 'spring.security.cors.configurationSource.maxAge'"
-  },
-  {
-    "name": "spring.security.cors.configurationSource.allowedHeaders",
-    "type": "java.lang.String",
-    "description": "A description for 'spring.security.cors.configurationSource.allowedHeaders'"
-  },
-  {
-    "name": "spring.security.cors.configurationSource.exposedHeaders",
-    "type": "java.lang.String",
-    "description": "A description for 'spring.security.cors.configurationSource.exposedHeaders'"
-  },
-  {
-    "name": "spring.security.cors.configurationSource.maxAge",
-    "type": "java.lang.String",
-    "description": "A description for 'spring.security.cors.configurationSource.maxAge'"
+    "description": "A description for 'jwt.expiration'"
   }
 ]}

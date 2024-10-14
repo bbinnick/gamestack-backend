@@ -3,6 +3,7 @@ package com.bbinnick.gamestack.service;
 import java.security.Principal;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import com.bbinnick.gamestack.model.Game;
@@ -20,6 +21,9 @@ public class GameService {
 
 	public Game addGame(Game game, Principal principal) {
 		User user = userRepository.findByUsername(principal.getName());
+		if (user == null) {
+			throw new UsernameNotFoundException("User not found with username: " + principal.getName());
+		}
 		game.setUser(user);
 		return gameRepository.save(game);
 	}
