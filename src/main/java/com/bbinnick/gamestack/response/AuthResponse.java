@@ -12,6 +12,6 @@ import lombok.Setter;
 public class AuthResponse {
 	private String jwt;
 	private String message;
-	private Boolean status;
+	private boolean success;
 	private String username;
 }

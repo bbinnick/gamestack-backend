@@ -1,11 +1,9 @@
 package com.bbinnick.gamestack.service;
 
-import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.bbinnick.gamestack.auth.SecurityUser;
 import com.bbinnick.gamestack.model.User;
@@ -17,11 +15,9 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 public class UserServiceImpl implements UserDetailsService {
 
-	@Autowired
 	private UserRepository userRepo;
+	
 	@Autowired
-	private BCryptPasswordEncoder passwordEncoder;
-
 	public UserServiceImpl(UserRepository userRepo) {
 		this.userRepo = userRepo;
 	}
@@ -37,7 +33,7 @@ public class UserServiceImpl implements UserDetailsService {
 		return new SecurityUser(user);
 	}
 
-	public UserDetails loadUserByEmail(String email) {
+	public UserDetails loadUserByEmail(String email) throws UsernameNotFoundException {
 		User user = userRepo.findByEmail(email);
 		if (user == null) {
 			log.error("User not found with this email: {}", email);
@@ -45,18 +41,5 @@ public class UserServiceImpl implements UserDetailsService {
 		}
 		log.info("Loaded user: {}", user.getEmail());
 		return new SecurityUser(user);
-	}
-
-	public User saveUser(User user) {
-		user.setPassword(passwordEncoder.encode(user.getPassword()));
-		return userRepo.save(user);
-	}
-
-	public List<User> getAllUsers() {
-		return userRepo.findAll();
-	}
-
-	public void deleteUser(Long id) {
-		userRepo.deleteById(id);
 	}
 }
