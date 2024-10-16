@@ -1,6 +1,5 @@
 package com.bbinnick.gamestack.config;
 
-import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import lombok.Getter;
@@ -11,14 +10,16 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 
+import com.bbinnick.gamestack.auth.SecurityUser;
+
 import javax.crypto.SecretKey;
-import java.util.Collection;
 import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
-@Getter 
+@Getter
 @Component
 public class JwtProvider {
 
@@ -32,32 +33,15 @@ public class JwtProvider {
 	}
 
 	public String generateToken(Authentication auth) {
-		Collection<? extends GrantedAuthority> authorities = auth.getAuthorities();
-		String roles = populateAuthorities(authorities);
-		return Jwts.builder().issuedAt(new Date())
-				.expiration(new Date(new Date().getTime() + jwtConstant.getExpirationTime()))
-				.claim("username", auth.getName()).claim("authorities", roles).signWith(key).compact();
-	}
+		SecurityUser userDetails = (SecurityUser) auth.getPrincipal();
+		Map<String, Object> claims = new HashMap<>();
+		claims.put("username", userDetails.getUsername());
+		claims.put("user_id", userDetails.getId());
+		claims.put("authorities", userDetails.getAuthorities().stream().map(GrantedAuthority::getAuthority)
+				.collect(Collectors.joining(",")));
 
-	private String populateAuthorities(Collection<? extends GrantedAuthority> authorities) {
-		Set<String> auths = new HashSet<>();
-		for (GrantedAuthority authority : authorities) {
-			auths.add(authority.getAuthority());
-		}
-		return String.join(",", auths);
-	}
-
-	public String getEmailFromJwtToken(String jwt) {
-		jwt = jwt.substring(7);
-		try {
-			Claims claims = Jwts.parser().decryptWith(key).build().parseSignedClaims(jwt).getPayload();
-			String email = String.valueOf(claims.get("email"));
-			log.info("Email extracted from JWT: {}", claims);
-			return email;
-		} catch (Exception e) {
-			log.error("Error extracting email from JWT: {}", e.getMessage());
-			e.printStackTrace();
-			return null;
-		}
+		return Jwts.builder().claims(claims).subject(userDetails.getUsername()).issuedAt(new Date())
+				.expiration(new Date(System.currentTimeMillis() + jwtConstant.getExpirationTime())).signWith(key)
+				.compact();
 	}
 }

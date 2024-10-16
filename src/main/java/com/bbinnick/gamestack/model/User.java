@@ -1,7 +1,12 @@
 package com.bbinnick.gamestack.model;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
@@ -26,8 +31,11 @@ public class User {
 	private String password;
 	@Column(nullable = false, length = 20)
 	private String username;
-	
 	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
 	@JsonManagedReference // to prevent infinite loop when serializing
 	private List<Game> games = new ArrayList<>();
+
+	public Collection<? extends GrantedAuthority> getAuthorities() {
+		return Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + this.role.toUpperCase()));
+	}
 }

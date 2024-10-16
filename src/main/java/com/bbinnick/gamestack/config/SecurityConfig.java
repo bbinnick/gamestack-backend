@@ -28,8 +28,6 @@ public class SecurityConfig {
 	SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 		http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 				.authorizeHttpRequests(auth -> auth.requestMatchers("/users/register", "/users/login").permitAll() // Public
-						.requestMatchers("/**").hasRole("ADMIN") // Admin-specific rules endpoints
-						.requestMatchers("/games/**").hasRole("USER") // Protected endpoints
 						.anyRequest().authenticated())
 				.addFilterBefore(jwtTokenValidator, BasicAuthenticationFilter.class).csrf(csrf -> csrf.disable())
 				.cors(cors -> cors.configurationSource(corsConfigurationSource()));

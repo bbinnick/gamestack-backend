@@ -18,9 +18,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.bbinnick.gamestack.auth.SecurityUser;
+import com.bbinnick.gamestack.model.User;
+
 import javax.crypto.SecretKey;
 import java.io.IOException;
-import java.util.Date;
 import java.util.List;
 
 @Slf4j
@@ -43,16 +45,18 @@ public class JwtTokenValidator extends OncePerRequestFilter {
 			try {
 				SecretKey key = jwtProvider.getKey();
 				Claims claims = Jwts.parser().verifyWith(key).build().parseSignedClaims(jwt).getPayload();
-				String username = String.valueOf(claims.get("username")); // Ensure the username is part of the claims
-				log.info("Claims in JwtTokenValidator: {}", claims);
-				// Handle expiration
-				if (claims.getExpiration().before(new Date())) {
-					throw new BadCredentialsException("Token expired");
-				}
-				List<GrantedAuthority> authorities = AuthorityUtils
-						.commaSeparatedStringToAuthorityList((String) claims.get("authorities"));
-				Authentication authentication = new UsernamePasswordAuthenticationToken(username, null, authorities);
+				String username = claims.get("username", String.class);
+				Long userId = claims.get("user_id", Long.class);
+				String authorities = claims.get("authorities", String.class);
+				List<GrantedAuthority> authList = AuthorityUtils.commaSeparatedStringToAuthorityList(authorities);
+				User user = new User();
+				user.setId(userId);
+				user.setUsername(username);
+				// Set other user fields if necessary
+				SecurityUser userDetails = new SecurityUser(user);
+				Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, null, authList);
 				SecurityContextHolder.getContext().setAuthentication(authentication);
+				log.info("Claims in JwtTokenValidator: {}", claims);
 			} catch (Exception e) {
 				log.error("Invalid token: {}", e.getMessage());
 				throw new BadCredentialsException("Invalid token", e);

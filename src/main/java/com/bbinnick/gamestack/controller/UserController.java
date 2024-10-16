@@ -1,19 +1,11 @@
 package com.bbinnick.gamestack.controller;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -22,13 +14,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.bbinnick.gamestack.auth.SecurityUser;
 import com.bbinnick.gamestack.config.JwtProvider;
 import com.bbinnick.gamestack.model.User;
 import com.bbinnick.gamestack.repository.UserRepository;
 import com.bbinnick.gamestack.response.AuthResponse;
 import com.bbinnick.gamestack.service.UserServiceImpl;
 
-import io.jsonwebtoken.Jwts;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
@@ -69,63 +61,36 @@ public class UserController {
 		user.setPassword(passwordEncoder.encode(user.getPassword()));
 		User savedUser = userRepository.save(user);
 		log.info("User registered successfully: {}", savedUser);
-
-		// Set up authorities for the registered user
-		List<GrantedAuthority> authorities = List
-				.of(new SimpleGrantedAuthority("ROLE_" + savedUser.getRole().toUpperCase()));
-
-		// Create authentication token for the new user
-		Authentication authentication = new UsernamePasswordAuthenticationToken(savedUser.getUsername(),
-				savedUser.getPassword(), authorities);
+		SecurityUser securityUser = new SecurityUser(savedUser);
+		Authentication authentication = new UsernamePasswordAuthenticationToken(securityUser,
+				securityUser.getPassword(), securityUser.getAuthorities());
 		SecurityContextHolder.getContext().setAuthentication(authentication);
-
-		// Generate JWT token using JwtProvider instance
 		String token = jwtProvider.generateToken(authentication);
-
-		// Return response with the token
 		AuthResponse authResponse = new AuthResponse(token, "Register Success", true, savedUser.getUsername());
 		return new ResponseEntity<>(authResponse, HttpStatus.OK);
 	}
 
 	@PostMapping("/login")
 	public ResponseEntity<AuthResponse> signIn(@RequestBody User loginRequest) {
-		// Authenticate user
 		Authentication authentication = authenticate(loginRequest.getEmail(), loginRequest.getPassword());
 		SecurityContextHolder.getContext().setAuthentication(authentication);
-
-		// Generate JWT token using JwtProvider instance
 		String token = jwtProvider.generateToken(authentication);
-
-		// Return response with the token
 		AuthResponse authResponse = new AuthResponse(token, "Login Success", true, loginRequest.getUsername());
 		return new ResponseEntity<>(authResponse, HttpStatus.OK);
 	}
 
 	private Authentication authenticate(String email, String password) {
-		// Load user by email
 		UserDetails userDetails = customUserDetails.loadUserByEmail(email);
 		if (userDetails == null) {
-			log.error("Sign in details - null {}", userDetails);
+			log.error("Sign in failed - user not found: {}", email);
 			throw new BadCredentialsException("Invalid email and password");
 		}
-		// Verify password
+
 		if (!passwordEncoder.matches(password, userDetails.getPassword())) {
-			log.error("Sign in userDetails - password mismatch {}", userDetails);
+			log.error("Sign in failed - password mismatch for user: {}", userDetails.getUsername());
 			throw new BadCredentialsException("Invalid password");
 		}
-		// Return authentication token for the user
 		return new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 	}
 
-	public String generateToken(Authentication authentication) {
-		UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-		Map<String, Object> claims = new HashMap<>();
-		claims.put("username", userDetails.getUsername());
-		claims.put("authorities", authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority)
-				.collect(Collectors.joining(",")));
-		return Jwts.builder().claims(claims).subject(userDetails.getUsername()).issuedAt(new Date())
-				.expiration(new Date(System.currentTimeMillis() + jwtProvider.getJwtConstant().getExpirationTime()))
-				.signWith(jwtProvider.getKey()) // Fetch SecretKey from JwtProvider
-				.compact();
-	}
 }
