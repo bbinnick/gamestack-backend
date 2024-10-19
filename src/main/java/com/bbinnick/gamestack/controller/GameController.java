@@ -11,41 +11,31 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.bbinnick.gamestack.auth.SecurityUser;
 import com.bbinnick.gamestack.model.Game;
-import com.bbinnick.gamestack.model.User;
-import com.bbinnick.gamestack.repository.GameRepository;
-import com.bbinnick.gamestack.repository.UserRepository;
+import com.bbinnick.gamestack.service.GameService;
 
 @RestController
 @RequestMapping("/games")
 public class GameController {
 
-	@Autowired
-	private GameRepository gameRepository;
+	private final GameService gameService;
 
 	@Autowired
-	private UserRepository userRepository;
+	public GameController(GameService gameService) {
+		this.gameService = gameService;
+	}
 
 	@PostMapping("/add")
-	public ResponseEntity<Game> addGame(@RequestBody Game game, Authentication authentication) {
+	public ResponseEntity<?> addGame(@RequestBody Game game, Authentication authentication) {
+		if (authentication == null || !(authentication.getPrincipal() instanceof SecurityUser))
+			return new ResponseEntity<>("Unauthorized", HttpStatus.UNAUTHORIZED);
 		SecurityUser userDetails = (SecurityUser) authentication.getPrincipal();
-		User currentUser = userRepository.findById(userDetails.getId()).orElse(null);
-		if (currentUser == null) {
-			return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+		try {
+			if (game.getTitle() == null || game.getTitle().trim().isEmpty())
+				return new ResponseEntity<>("Game title is required", HttpStatus.BAD_REQUEST);
+			Game savedGame = gameService.addGame(game, userDetails.getId());
+			return ResponseEntity.ok(savedGame);
+		} catch (Exception e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
-		game.setUser(currentUser);
-		Game savedGame = gameRepository.save(game);
-
-		return ResponseEntity.ok(savedGame);
 	}
-	/*
-	 * @PostMapping("/add") public ResponseEntity<Game> addGame(@RequestBody Game
-	 * game, Principal principal) { if (principal == null) { return new
-	 * ResponseEntity<>(HttpStatus.UNAUTHORIZED); } // Fetch the logged-in user from
-	 * the database using the principal's name (username or email) User user =
-	 * userRepository.findByUsername(principal.getName()); if (user == null) {
-	 * return new ResponseEntity<>(HttpStatus.UNAUTHORIZED); } // Set the user for
-	 * the game game.setUser(user); // Save the game to the repository Game
-	 * savedGame = gameRepository.save(game); return new ResponseEntity<>(savedGame,
-	 * HttpStatus.CREATED); }
-	 */
 }

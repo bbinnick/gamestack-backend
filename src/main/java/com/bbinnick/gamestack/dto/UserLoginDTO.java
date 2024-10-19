@@ -1,4 +1,4 @@
-package com.bbinnick.gamestack.controller.dto;
+package com.bbinnick.gamestack.dto;
 
 import lombok.Getter;
 import lombok.Setter;

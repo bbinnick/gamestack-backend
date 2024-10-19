@@ -8,8 +8,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.bbinnick.gamestack.controller.dto.UserLoginDTO;
-import com.bbinnick.gamestack.controller.dto.UserRegistrationDTO;
+import com.bbinnick.gamestack.dto.UserLoginDTO;
+import com.bbinnick.gamestack.dto.UserRegistrationDTO;
 import com.bbinnick.gamestack.response.AuthResponse;
 import com.bbinnick.gamestack.service.UserService;
 
