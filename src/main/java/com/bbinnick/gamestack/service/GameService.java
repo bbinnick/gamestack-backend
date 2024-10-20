@@ -1,5 +1,7 @@
 package com.bbinnick.gamestack.service;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -29,4 +31,9 @@ public class GameService {
 		game.setUser(user);
 		return gameRepository.save(game);
 	}
+	
+	public List<Game> getGamesByUserId(Long userId) {
+	    return gameRepository.findByUserId(userId);
+	}
+
 }

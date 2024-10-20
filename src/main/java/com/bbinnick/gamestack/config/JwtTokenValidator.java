@@ -56,7 +56,6 @@ public class JwtTokenValidator extends OncePerRequestFilter {
 				SecurityUser userDetails = new SecurityUser(user);
 				Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, null, authList);
 				SecurityContextHolder.getContext().setAuthentication(authentication);
-				log.info("Claims in JwtTokenValidator: {}", claims);
 			} catch (Exception e) {
 				log.error("Invalid token: {}", e.getMessage());
 				throw new BadCredentialsException("Invalid token", e);
