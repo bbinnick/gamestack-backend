@@ -27,5 +27,6 @@ public class Game {
 	@ManyToOne
 	@JoinColumn(name = "user_id")
 	@JsonBackReference
+	// @ToString.Exclude
 	private User user;
 }
