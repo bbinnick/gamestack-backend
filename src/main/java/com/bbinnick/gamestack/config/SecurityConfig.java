@@ -27,7 +27,7 @@ public class SecurityConfig {
 	@Bean
 	SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 		http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-				.authorizeHttpRequests(auth -> auth.requestMatchers("/users/register", "/users/login").permitAll() // Public
+				.authorizeHttpRequests(auth -> auth.requestMatchers("/users/register", "/users/login", "/uploaded-images/**").permitAll() // Public
 						.anyRequest().authenticated())
 				.addFilterBefore(jwtTokenValidator, BasicAuthenticationFilter.class).csrf(csrf -> csrf.disable())
 				.cors(cors -> cors.configurationSource(corsConfigurationSource()));
