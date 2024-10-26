@@ -51,6 +51,8 @@ public class GameController {
 		}
 	}
 
+	//TODO: Add try/catch for deleteGame and updateGameStatus
+	
 	// Endpoint to delete a game by its ID
 	@DeleteMapping("/{gameId}")
 	public ResponseEntity<Void> deleteGame(@PathVariable Long gameId, Authentication authentication) {
