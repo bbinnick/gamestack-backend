@@ -8,13 +8,14 @@ import java.nio.file.StandardCopyOption;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import jakarta.annotation.PostConstruct;
 
 @Service
 public class ImageService {
 
-	private final Path rootLocation = Paths.get("uploaded-images");
+	private final Path rootLocation = Paths.get("uploads");
 
 	@PostConstruct
 	public void init() {
@@ -28,8 +29,8 @@ public class ImageService {
 	}
 
 	public String saveImage(MultipartFile file) throws IOException {
-		if (file.isEmpty()) {
-			throw new IOException("Failed to store empty file.");
+		if (file == null || file.isEmpty()) {
+			return null;
 		}
 
 		String filename = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
@@ -43,7 +44,12 @@ public class ImageService {
 		}
 	}
 
-	public Path loadImage(String filename) {
-		return rootLocation.resolve(filename);
+	public Path loadImage(String filename) throws NoResourceFoundException {
+		Path imagePath = rootLocation.resolve(filename);
+		if (Files.exists(imagePath)) {
+			return imagePath;
+		} else {
+			throw new NoResourceFoundException(null, "Resource not found for " + filename);
+		}
 	}
 }

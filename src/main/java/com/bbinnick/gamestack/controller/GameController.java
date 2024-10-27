@@ -44,12 +44,13 @@ public class GameController {
 
 	// Endpoint to add a game
 	@PostMapping("/add")
-	public ResponseEntity<?> addGame(@RequestPart("game") Game game, @RequestPart("image") MultipartFile image,
-			Authentication authentication) {
+	public ResponseEntity<?> addGame(@RequestPart("game") Game game,
+			@RequestPart(value = "image", required = false) MultipartFile image, Authentication authentication) {
 		if (authentication == null || !(authentication.getPrincipal() instanceof SecurityUser))
 			return new ResponseEntity<>("Unauthorized", HttpStatus.UNAUTHORIZED);
 		SecurityUser userDetails = (SecurityUser) authentication.getPrincipal();
 		try {
+			// TODO: move validation logic to service
 			if (game.getTitle() == null || game.getTitle().trim().isEmpty())
 				return new ResponseEntity<>("Game title is required", HttpStatus.BAD_REQUEST);
 			game.setImageUrl(imageService.saveImage(image));
@@ -103,7 +104,7 @@ public class GameController {
 	public ResponseEntity<List<GameDTO>> getBacklog(Authentication authentication) {
 		SecurityUser userDetails = (SecurityUser) authentication.getPrincipal();
 		List<Game> games = gameService.getGamesByUserId(userDetails.getId());
-	    List<GameDTO> gamesDTO = games.stream().map(this::convertToGameDTO).collect(Collectors.toList());
+		List<GameDTO> gamesDTO = games.stream().map(this::convertToGameDTO).collect(Collectors.toList());
 		return ResponseEntity.ok(gamesDTO);
 	}
 
@@ -115,7 +116,7 @@ public class GameController {
 		gameDTO.setPlatform(game.getPlatform());
 		gameDTO.setGenre(game.getGenre());
 		gameDTO.setStatus(game.getStatus());
-		gameDTO.setAddedOn(game.getAddedOn() != null ? game.getAddedOn() : LocalDate.now());
+		gameDTO.setAddedOn(game.getAddedOn());
 		gameDTO.setImageUrl(game.getImageUrl());
 		return gameDTO;
 	}
