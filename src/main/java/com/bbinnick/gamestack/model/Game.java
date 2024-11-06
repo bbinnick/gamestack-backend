@@ -1,12 +1,15 @@
 package com.bbinnick.gamestack.model;
 
 import java.time.LocalDate;
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import lombok.Data;
@@ -26,12 +29,13 @@ public class Game {
 	private String status; // e.g., "Not Started", "In Progress", "Completed"
 	private LocalDate addedOn;
 	private String imageUrl;
-
 	@ManyToOne
 	@JoinColumn(name = "user_id")
 	@JsonBackReference
 	// @ToString.Exclude
 	private User user;
+	@ManyToMany(mappedBy = "gamesInBacklog")
+	private List<User> users;
 
 	@PrePersist
 	protected void onCreate() {
