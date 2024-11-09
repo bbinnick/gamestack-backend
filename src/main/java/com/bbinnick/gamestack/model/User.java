@@ -7,6 +7,8 @@ import java.util.List;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -33,6 +35,7 @@ public class User {
 	@JsonManagedReference // to prevent infinite loop when serializing
 	private List<Game> games = new ArrayList<>();
 	@ManyToMany
+    @JsonBackReference
 	@JoinTable(name = "user_games", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "game_id"))
 	private List<Game> gamesInBacklog = new ArrayList<>();
 

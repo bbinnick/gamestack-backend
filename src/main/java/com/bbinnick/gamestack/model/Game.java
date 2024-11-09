@@ -4,6 +4,8 @@ import java.time.LocalDate;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -35,6 +37,7 @@ public class Game {
 	// @ToString.Exclude
 	private User user;
 	@ManyToMany(mappedBy = "gamesInBacklog")
+    @JsonManagedReference
 	private List<User> users;
 
 	@PrePersist

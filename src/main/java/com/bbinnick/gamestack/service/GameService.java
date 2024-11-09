@@ -91,7 +91,7 @@ public class GameService {
 		return null;
 	}
 
-	public List<GameWithUsersDTO> listAllGamesWithUsers() {
+	public List<GameWithUsersDTO> listAllGames() {
 		return gameRepository.findAll().stream().map(game -> {
 			GameWithUsersDTO dto = new GameWithUsersDTO();
 			dto.setId(game.getId());

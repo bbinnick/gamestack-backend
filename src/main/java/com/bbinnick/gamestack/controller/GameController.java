@@ -186,12 +186,19 @@ public class GameController {
 		List<GameDTO> gamesDTO = games.stream().map(this::convertToGameDTO).collect(Collectors.toList());
 		return ResponseEntity.ok(gamesDTO);
 	}
+	
+	// Endpoint to show a game's details
+    @GetMapping("/{gameId}")
+    public ResponseEntity<GameDTO> getGameDetails(@PathVariable Long gameId) {
+        Game game = gameService.getGameById(gameId);
+        GameDTO gameDTO = convertToGameDTO(game);
+        return ResponseEntity.ok(gameDTO);
+    }
 
 	// Endpoint to list all games that users have added
-	@PreAuthorize("hasRole('ADMIN')")
 	@GetMapping("/all")
-	public ResponseEntity<List<GameWithUsersDTO>> getAllGamesWithUsers() {
-		List<GameWithUsersDTO> games = gameService.listAllGamesWithUsers();
+	public ResponseEntity<List<GameWithUsersDTO>> getAllGames() {
+		List<GameWithUsersDTO> games = gameService.listAllGames();
 		return ResponseEntity.ok(games);
 	}
 
