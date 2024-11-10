@@ -1,6 +1,6 @@
 package com.bbinnick.gamestack.dto;
 
-import java.time.LocalDate;
+import java.util.List;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -16,7 +16,6 @@ public class GameDTO {
 	private String title;
 	private String platform;
 	private String genre;
-	private String status;
-	private LocalDate addedOn;
 	private String imageUrl;
+	private List<UserGameDTO> userGames;
 }

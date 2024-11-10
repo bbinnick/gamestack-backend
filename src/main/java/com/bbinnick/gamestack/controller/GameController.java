@@ -21,7 +21,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.bbinnick.gamestack.auth.SecurityUser;
 import com.bbinnick.gamestack.dto.GameDTO;
-import com.bbinnick.gamestack.dto.GameWithUsersDTO;
 import com.bbinnick.gamestack.model.Game;
 import com.bbinnick.gamestack.service.GameService;
 import com.bbinnick.gamestack.service.ImageService;
@@ -53,10 +52,9 @@ public class GameController {
 				return new ResponseEntity<>("Game title is required", HttpStatus.BAD_REQUEST);
 			game.setImageUrl(imageService.saveImage(image));
 			Game savedGame = gameService.addGame(game);
-			GameDTO savedGameDTO = convertToGameDTO(savedGame);
-			log.info("Game added: Title = {}, Platform = {}, Genre = {}, Status = {}, Image URL = {}",
-					savedGameDTO.getTitle(), savedGameDTO.getPlatform(), savedGameDTO.getGenre(),
-					savedGameDTO.getStatus(), savedGameDTO.getImageUrl());
+			GameDTO savedGameDTO = gameService.convertToGameDTO(savedGame);
+			log.info("Game added: Title = {}, Platform = {}, Genre = {}, Image URL = {}", savedGameDTO.getTitle(),
+					savedGameDTO.getPlatform(), savedGameDTO.getGenre(), savedGameDTO.getImageUrl());
 			return ResponseEntity.ok(savedGameDTO);
 		} catch (IOException e) {
 			log.error("Error saving image file", e);
@@ -94,86 +92,50 @@ public class GameController {
 				game.setImageUrl(existingGame.getImageUrl());
 			}
 			Game editedGame = gameService.editGame(gameId, game);
-			GameDTO editedGameDTO = convertToGameDTO(editedGame);
-			log.info("Game edited: Title = {}, Genre = {}, Platform = {}, Status = {}, Image URL = {}",
-					editedGameDTO.getTitle(), editedGameDTO.getGenre(), editedGameDTO.getPlatform(),
-					editedGameDTO.getStatus(), editedGameDTO.getImageUrl());
+			GameDTO editedGameDTO = gameService.convertToGameDTO(editedGame);
+			log.info("Game edited: Title = {}, Platform = {}, Genre = {}, Image URL = {}", editedGameDTO.getTitle(),
+					editedGameDTO.getPlatform(), editedGameDTO.getGenre(), editedGameDTO.getImageUrl());
 			return ResponseEntity.ok(editedGameDTO);
 		} catch (Exception e) {
 			return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
-	/*
-	// Endpoint to delete a game by its ID
+	// Endpoint to delete a game by its ID (Admin only)
 	@PreAuthorize("hasRole('ADMIN')")
 	@DeleteMapping("/{gameId}")
-	public ResponseEntity<Void> deleteGame(@PathVariable Long gameId, Authentication authentication) {
-		SecurityUser userDetails = (SecurityUser) authentication.getPrincipal();
-		boolean isAdmin = userDetails.getAuthorities().stream()
-				.anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN"));
-		boolean isDeleted = gameService.deleteGame(gameId, userDetails.getId(), isAdmin);
+	public ResponseEntity<Void> deleteGame(@PathVariable Long gameId) {
+		boolean isDeleted = gameService.deleteGameById(gameId);
 		if (isDeleted) {
 			log.info("Game deleted: {}", gameId);
 			return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 		}
 		return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 	}
-	*/
 
-    // Endpoint to delete a game by its ID (Admin only)
-    @PreAuthorize("hasRole('ADMIN')")
-    @DeleteMapping("/{gameId}")
-    public ResponseEntity<Void> deleteGame(@PathVariable Long gameId) {
-        boolean isDeleted = gameService.deleteGameById(gameId);
-        if (isDeleted) {
-            log.info("Game deleted: {}", gameId);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        }
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-    }
-
-    // Endpoint to remove a game from a user's backlog
-    @DeleteMapping("/remove-from-backlog/{gameId}")
-    public ResponseEntity<Void> removeFromBacklog(@PathVariable Long gameId, Authentication authentication) {
-        SecurityUser userDetails = (SecurityUser) authentication.getPrincipal();
-        boolean isRemoved = gameService.removeGameFromUserBacklog(gameId, userDetails.getId());
-        if (isRemoved) {
-            log.info("Game removed from backlog: {}", gameId);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        }
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-    }
-
-	/*
 	// Endpoint to remove a game from a user's backlog
 	@DeleteMapping("/remove-from-backlog/{gameId}")
 	public ResponseEntity<Void> removeFromBacklog(@PathVariable Long gameId, Authentication authentication) {
 		SecurityUser userDetails = (SecurityUser) authentication.getPrincipal();
-		try {
-			gameService.removeGameFromUserBacklog(gameId, userDetails.getId());
+		boolean isRemoved = gameService.removeGameFromUserBacklog(gameId, userDetails.getId());
+		if (isRemoved) {
 			log.info("Game removed from backlog: {}", gameId);
 			return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-		} catch (Exception e) {
-			log.error("Error removing game from backlog", e);
-			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
+		return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 	}
-	*/
 
 	// Endpoint to update game status
 	@PatchMapping("/{gameId}/status")
-	public ResponseEntity<GameDTO> updateGameStatus(@PathVariable Long gameId,
+	public ResponseEntity<Void> updateGameStatus(@PathVariable Long gameId,
 			@RequestParam(required = true) String status, Authentication authentication) {
 		SecurityUser userDetails = (SecurityUser) authentication.getPrincipal();
 		if (status == null || status.isEmpty())
 			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-
-		Game updatedGame = gameService.updateGameStatus(gameId, userDetails.getId(), status);
-		if (updatedGame != null) {
-			GameDTO updatedGameDTO = convertToGameDTO(updatedGame);
+		boolean isUpdated = gameService.updateGameStatus(gameId, userDetails.getId(), status);
+		if (isUpdated) {
 			log.info("Game status updated: {}", gameId);
-			return ResponseEntity.ok(updatedGameDTO);
+			return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 		}
 		return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 	}
@@ -183,35 +145,29 @@ public class GameController {
 	public ResponseEntity<List<GameDTO>> getBacklog(Authentication authentication) {
 		SecurityUser userDetails = (SecurityUser) authentication.getPrincipal();
 		List<Game> games = gameService.getGamesByUserId(userDetails.getId());
-		List<GameDTO> gamesDTO = games.stream().map(this::convertToGameDTO).collect(Collectors.toList());
+		List<GameDTO> gamesDTO = games.stream().map(gameService::convertToGameDTO).collect(Collectors.toList());
 		return ResponseEntity.ok(gamesDTO);
 	}
-	
-	// Endpoint to show a game's details
-    @GetMapping("/{gameId}")
-    public ResponseEntity<GameDTO> getGameDetails(@PathVariable Long gameId) {
-        Game game = gameService.getGameById(gameId);
-        GameDTO gameDTO = convertToGameDTO(game);
-        return ResponseEntity.ok(gameDTO);
-    }
 
-	// Endpoint to list all games that users have added
+	// Endpoint to show a game's details
+	@GetMapping("/{gameId}")
+	public ResponseEntity<GameDTO> getGameDetails(@PathVariable Long gameId) {
+		Game game = gameService.getGameById(gameId);
+		GameDTO gameDTO = gameService.convertToGameDTO(game);
+		return ResponseEntity.ok(gameDTO);
+	}
+
+	// Endpoint to list all games
 	@GetMapping("/all")
-	public ResponseEntity<List<GameWithUsersDTO>> getAllGames() {
-		List<GameWithUsersDTO> games = gameService.listAllGames();
+	public ResponseEntity<List<Game>> listAllGames() {
+		List<Game> games = gameService.getAllGames();
 		return ResponseEntity.ok(games);
 	}
 
-	// Helper method to convert Game entity to GameDTO
-	private GameDTO convertToGameDTO(Game game) {
-		GameDTO gameDTO = new GameDTO();
-		gameDTO.setId(game.getId());
-		gameDTO.setTitle(game.getTitle());
-		gameDTO.setPlatform(game.getPlatform());
-		gameDTO.setGenre(game.getGenre());
-		gameDTO.setStatus(game.getStatus());
-		gameDTO.setAddedOn(game.getAddedOn());
-		gameDTO.setImageUrl(game.getImageUrl());
-		return gameDTO;
+	// Endpoint to list all users profiles - not sure if this is needed
+	@GetMapping("/all-with-users")
+	public ResponseEntity<List<GameDTO>> listAllGamesWithUsers() {
+		List<GameDTO> gamesWithUsers = gameService.listAllGamesWithUsers();
+		return ResponseEntity.ok(gamesWithUsers);
 	}
 }
