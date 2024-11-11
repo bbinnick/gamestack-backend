@@ -1,6 +1,8 @@
 package com.bbinnick.gamestack.controller;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -138,6 +140,38 @@ public class GameController {
 			return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 		}
 		return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+	}
+
+	// Endpoint to rate a game
+	@PostMapping("/{gameId}/rate")
+	public ResponseEntity<?> rateGame(@PathVariable Long gameId, @RequestParam Double rating,
+			Authentication authentication) {
+		if (authentication == null || !(authentication.getPrincipal() instanceof SecurityUser))
+			return new ResponseEntity<>("Unauthorized", HttpStatus.UNAUTHORIZED);
+		SecurityUser userDetails = (SecurityUser) authentication.getPrincipal();
+		try {
+			boolean isRated = gameService.updateGameRating(gameId, userDetails.getId(), rating);
+			if (isRated) {
+				log.info("Game rated: {} with rating {}", gameId, rating);
+				return new ResponseEntity<>("Game rated successfully", HttpStatus.OK);
+			} else {
+				return new ResponseEntity<>("Game not found in user's backlog", HttpStatus.NOT_FOUND);
+			}
+		} catch (Exception e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	@GetMapping("/{gameId}/user-rating")
+	public ResponseEntity<?> getUserRating(@PathVariable Long gameId, Authentication authentication) {
+		if (authentication == null || !(authentication.getPrincipal() instanceof SecurityUser))
+			return new ResponseEntity<>("Unauthorized", HttpStatus.UNAUTHORIZED);
+		SecurityUser userDetails = (SecurityUser) authentication.getPrincipal();
+		Optional<Double> rating = gameService.getUserRating(gameId, userDetails.getId());
+		if (rating.isPresent() && rating.get() != null) {
+			return new ResponseEntity<>(Collections.singletonMap("rating", rating.get()), HttpStatus.OK);
+		}
+		return new ResponseEntity<>(Collections.singletonMap("message", "Game has not been rated yet"), HttpStatus.OK);
 	}
 
 	// Endpoint to show a single user's games

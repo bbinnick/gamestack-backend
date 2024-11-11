@@ -24,6 +24,7 @@ public class UserGame {
 	@JoinColumn(name = "game_id", nullable = false)
 	private Game game;
 	private String status = "Not Started"; // Track individual status for the game, e.g. Not Started", "In Progress", "Completed".
+	private Double rating;
 	private LocalDate addedOn;
 
 	@PrePersist

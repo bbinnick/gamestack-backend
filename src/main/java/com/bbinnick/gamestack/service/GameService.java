@@ -92,7 +92,43 @@ public class GameService {
 		return false;
 	}
 
-	// List all games with the users who have them in their backlog - not sure if this is needed
+	/*
+	 * // Add this method to handle rating submission. Doesn't account for logic of
+	 * not having a rating if the game is not in the user's backlog. public boolean
+	 * updateGameRating(Long gameId, Long userId, Double rating) {
+	 * Optional<UserGame> optionalUserGame =
+	 * userGameRepository.findByUserIdAndGameId(userId, gameId); if
+	 * (optionalUserGame.isPresent()) { UserGame userGame = optionalUserGame.get();
+	 * userGame.setRating(rating); userGameRepository.save(userGame); return true; }
+	 * return false; }
+	 */
+	public boolean updateGameRating(Long gameId, Long userId, Double rating) {
+		Optional<UserGame> optionalUserGame = userGameRepository.findByUserIdAndGameId(userId, gameId);
+		UserGame userGame;
+		if (optionalUserGame.isPresent()) {
+			userGame = optionalUserGame.get();
+		} else {
+			// Add the game to the user's backlog if not already present
+			Game game = gameRepository.findById(gameId)
+					.orElseThrow(() -> new IllegalArgumentException("Game not found"));
+			User user = getUserById(userId);
+			userGame = new UserGame();
+			userGame.setUser(user);
+			userGame.setGame(game);
+			userGame.setStatus("Not Started");
+		}
+		userGame.setRating(rating);
+		userGameRepository.save(userGame);
+		return true;
+	}
+
+	public Optional<Double> getUserRating(Long gameId, Long userId) {
+		Optional<UserGame> optionalUserGame = userGameRepository.findByUserIdAndGameId(userId, gameId);
+		return optionalUserGame.map(UserGame::getRating);
+	}
+
+	// List all games with the users who have them in their backlog - not sure if
+	// this is needed
 	public List<GameDTO> listAllGamesWithUsers() {
 		return gameRepository.findAll().stream().map(game -> {
 			GameDTO dto = new GameDTO();
@@ -108,7 +144,10 @@ public class GameService {
 	}
 
 	public List<Game> getAllGames() {
-		return gameRepository.findAll();
+		return gameRepository.findAll().stream().map(game -> {
+			game.setUserGames(null);
+			return game;
+		}).collect(Collectors.toList());
 	}
 
 	public Game getGameById(Long gameId) {
@@ -144,6 +183,7 @@ public class GameService {
 		userGameDTO.setUserId(userGame.getUser().getId());
 		userGameDTO.setUsername(userGame.getUser().getUsername());
 		userGameDTO.setStatus(userGame.getStatus());
+		userGameDTO.setRating(userGame.getRating());
 		userGameDTO.setAddedOn(userGame.getAddedOn());
 		return userGameDTO;
 	}
