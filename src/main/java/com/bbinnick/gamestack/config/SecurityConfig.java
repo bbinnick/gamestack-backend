@@ -30,7 +30,7 @@ public class SecurityConfig implements WebMvcConfigurer {
 	SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 		http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 				.authorizeHttpRequests(
-						auth -> auth.requestMatchers("/users/register", "/users/login", "games/all", "games/{gameId}", "/uploads/**").permitAll() // Public
+						auth -> auth.requestMatchers("/users/register", "/users/login", "/igdb/**", "games/all", "games/{gameId}", "/uploads/**").permitAll() // Public
 								.anyRequest().authenticated())
 				.addFilterBefore(jwtTokenValidator, BasicAuthenticationFilter.class).csrf(csrf -> csrf.disable())
 				.cors(cors -> cors.configurationSource(corsConfigurationSource()));
