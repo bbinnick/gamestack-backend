@@ -9,6 +9,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import com.bbinnick.gamestack.dto.GameDTO;
+import com.bbinnick.gamestack.dto.IgdbGameDTO;
 import com.bbinnick.gamestack.dto.UserGameDTO;
 import com.bbinnick.gamestack.model.Game;
 import com.bbinnick.gamestack.model.User;
@@ -92,16 +93,6 @@ public class GameService {
 		return false;
 	}
 
-	/*
-	 * // Add this method to handle rating submission. Doesn't account for logic of
-	 * not having a rating if the game is not in the user's backlog. public boolean
-	 * updateGameRating(Long gameId, Long userId, Double rating) {
-	 * Optional<UserGame> optionalUserGame =
-	 * userGameRepository.findByUserIdAndGameId(userId, gameId); if
-	 * (optionalUserGame.isPresent()) { UserGame userGame = optionalUserGame.get();
-	 * userGame.setRating(rating); userGameRepository.save(userGame); return true; }
-	 * return false; }
-	 */
 	public boolean updateGameRating(Long gameId, Long userId, Double rating) {
 		Optional<UserGame> optionalUserGame = userGameRepository.findByUserIdAndGameId(userId, gameId);
 		UserGame userGame;
@@ -187,5 +178,4 @@ public class GameService {
 		userGameDTO.setAddedOn(userGame.getAddedOn());
 		return userGameDTO;
 	}
-
 }

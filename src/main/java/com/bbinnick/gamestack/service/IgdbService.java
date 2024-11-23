@@ -1,10 +1,8 @@
 package com.bbinnick.gamestack.service;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
@@ -46,34 +44,43 @@ public class IgdbService {
 		}
 	}
 
+	// Fetch game by ID and return details. fix fields to be more specific.
 	public Mono<String> getGameById(Long gameId) {
-		String query = IgdbQueryBuilder.buildGameQuery(new String[] { "*" }, 1) + " where id = " + gameId + ";";
+		String query = String.format("fields id, name, cover.image_id, platforms.name, genres.name, rating, summary; where id = %d;", gameId);
 		return getGames(query);
 	}
 
+	// Search for games by name
 	public Mono<String> searchGames(String searchQuery, int limit) {
-		String query = IgdbQueryBuilder.buildGameQuery(new String[] { "*" }, limit) + " search \"" + searchQuery
-				+ "\";";
+		String query = IgdbQueryBuilder.buildSearchGameQuery(new String[] { "*" }, limit)
+				+ String.format(" search \"%s\";", searchQuery);
 		return getGames(query);
 	}
 
-	public Mono<String> getPopularGames(String[] fields, int limit) {
-		String query = IgdbQueryBuilder.buildPopularGamesQuery(fields, limit);
+	// Fetch popular games (using helper method for consistency)
+	public Mono<String> getPopularGames(int limit) {
+		String query = IgdbQueryBuilder.buildPopularGamesQuery(
+				new String[] { "id", "name", "cover.image_id", "hypes", "rating" },
+				limit);
 		return getGames(query);
 	}
-	// need queries to be in the body of the request, not params
-	public Mono<String> getPopularHypedGames(int limit) {
+
+	// doesnt work
+	public Mono<String> getTopPlayingGames() {
 		String query = """
-				fields id, name, cover.url, hypes, rating;
-				where hypes > 50;
-				sort hypes desc;
-				limit %d;
-				""".formatted(limit);
-		return getGames(query); // Reuse the getGames method to send this query
-	}
-
-	public Mono<String> getNewReleases(String[] fields, int limit) {
-		String query = IgdbQueryBuilder.buildNewReleasesQuery(fields, limit);
+				    fields game_id, value, popularity_type;
+				    where popularity_type = 3;
+				    sort value desc;
+				    limit 10;
+				""";
 		return getGames(query);
 	}
+
+	// Fetch new releases. Replace with recent critic reviews or another category.
+	// weird games show up.
+	public Mono<String> getNewReleases(int limit) {
+		String query = IgdbQueryBuilder.buildNewReleasesQuery(new String[] { "id", "name", "cover.image_id" }, limit);
+		return getGames(query);
+	}
+
 }
