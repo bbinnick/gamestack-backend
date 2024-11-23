@@ -14,8 +14,8 @@ public class GameDTO {
 	@NotNull(message = "Title cannot be null")
 	@Size(min = 1, message = "Title must have at least 1 character")
 	private String title;
-	private String platform;
-	private String genre;
+    private List<String> platforms;
+    private List<String> genres;
 	private String imageUrl;
 	private List<UserGameDTO> userGames;
 }

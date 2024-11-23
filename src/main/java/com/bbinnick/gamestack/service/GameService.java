@@ -9,7 +9,6 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import com.bbinnick.gamestack.dto.GameDTO;
-import com.bbinnick.gamestack.dto.IgdbGameDTO;
 import com.bbinnick.gamestack.dto.UserGameDTO;
 import com.bbinnick.gamestack.model.Game;
 import com.bbinnick.gamestack.model.User;
@@ -56,8 +55,8 @@ public class GameService {
 		Game editedGame = gameRepository.findById(gameId)
 				.orElseThrow(() -> new IllegalArgumentException("Game not found"));
 		editedGame.setTitle(game.getTitle());
-		editedGame.setPlatform(game.getPlatform());
-		editedGame.setGenre(game.getGenre());
+		editedGame.setPlatforms(game.getPlatforms());
+		editedGame.setGenres(game.getGenres());
 		editedGame.setImageUrl(game.getImageUrl());
 		return gameRepository.save(editedGame);
 	}
@@ -125,8 +124,8 @@ public class GameService {
 			GameDTO dto = new GameDTO();
 			dto.setId(game.getId());
 			dto.setTitle(game.getTitle());
-			dto.setPlatform(game.getPlatform());
-			dto.setGenre(game.getGenre());
+			dto.setPlatforms(game.getPlatforms());
+			dto.setGenres(game.getGenres());
 			dto.setImageUrl(game.getImageUrl());
 			dto.setUserGames(userGameRepository.findByGameId(game.getId()).stream().map(this::convertToUserGameDTO)
 					.collect(Collectors.toList()));
@@ -160,8 +159,8 @@ public class GameService {
 		GameDTO gameDTO = new GameDTO();
 		gameDTO.setId(game.getId());
 		gameDTO.setTitle(game.getTitle());
-		gameDTO.setPlatform(game.getPlatform());
-		gameDTO.setGenre(game.getGenre());
+		gameDTO.setPlatforms(game.getPlatforms());
+		gameDTO.setGenres(game.getGenres());
 		gameDTO.setImageUrl(game.getImageUrl());
 		gameDTO.setUserGames(userGameRepository.findByGameId(game.getId()).stream().map(this::convertToUserGameDTO)
 				.collect(Collectors.toList()));

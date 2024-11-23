@@ -55,8 +55,8 @@ public class GameController {
 			game.setImageUrl(imageService.saveImage(image));
 			Game savedGame = gameService.addGame(game);
 			GameDTO savedGameDTO = gameService.convertToGameDTO(savedGame);
-			log.info("Game added: Title = {}, Platform = {}, Genre = {}, Image URL = {}", savedGameDTO.getTitle(),
-					savedGameDTO.getPlatform(), savedGameDTO.getGenre(), savedGameDTO.getImageUrl());
+			log.info("Game added: Title = {}, Platforms = {}, Genres = {}, Image URL = {}", savedGameDTO.getTitle(),
+					savedGameDTO.getPlatforms(), savedGameDTO.getGenres(), savedGameDTO.getImageUrl());
 			return ResponseEntity.ok(savedGameDTO);
 		} catch (IOException e) {
 			log.error("Error saving image file", e);
@@ -95,8 +95,8 @@ public class GameController {
 			}
 			Game editedGame = gameService.editGame(gameId, game);
 			GameDTO editedGameDTO = gameService.convertToGameDTO(editedGame);
-			log.info("Game edited: Title = {}, Platform = {}, Genre = {}, Image URL = {}", editedGameDTO.getTitle(),
-					editedGameDTO.getPlatform(), editedGameDTO.getGenre(), editedGameDTO.getImageUrl());
+			log.info("Game edited: Title = {}, Platforms = {}, Genres = {}, Image URL = {}", editedGameDTO.getTitle(),
+					editedGameDTO.getPlatforms(), editedGameDTO.getGenres(), editedGameDTO.getImageUrl());
 			return ResponseEntity.ok(editedGameDTO);
 		} catch (Exception e) {
 			return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
