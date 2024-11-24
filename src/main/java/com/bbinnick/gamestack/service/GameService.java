@@ -40,29 +40,42 @@ public class GameService {
 	// Method to add a manually created game to a specific user's backlog
 	public void addGameToUserBacklog(Long gameId, Long userId) {
 		Game game = gameRepository.findById(gameId).orElseThrow(() -> new IllegalArgumentException("Game not found"));
-		User user = getUserById(userId);
-		// Ensure the game isn't already in the user's backlog
 		if (!userGameRepository.findByUserIdAndGameId(userId, gameId).isPresent()) {
+			User user = getUserById(userId);
 			UserGame userGame = new UserGame();
 			userGame.setUser(user);
 			userGame.setGame(game);
 			userGame.setStatus("Not Started");
 			userGameRepository.save(userGame);
 		}
-		// add alert if game is already in user's backlog
 	}
-	
+
 	// Method to add an IGDB game to the database
-    public GameDTO addIgdbGameToUserBacklog(IgdbGameDTO igdbGameDTO) {
-        Game game = new Game();
-        game.setIgdbGameId(igdbGameDTO.getId());
-        game.setTitle(igdbGameDTO.getName());
-        game.setPlatforms(igdbGameDTO.getPlatforms());
-        game.setGenres(igdbGameDTO.getGenres());
-        game.setImageUrl("https://images.igdb.com/igdb/image/upload/t_cover_big/" + igdbGameDTO.getCoverUrl() + ".jpg");
-        Game savedGame = gameRepository.save(game);
-        return convertToGameDTO(savedGame);
-    }
+	public GameDTO addIgdbGameToUserBacklog(IgdbGameDTO igdbGameDTO, Long userId) {
+		Game game = gameRepository.findByIgdbGameId(igdbGameDTO.getId()).orElseGet(() -> {
+			Game newGame = new Game();
+			newGame.setIgdbGameId(igdbGameDTO.getId());
+			newGame.setTitle(igdbGameDTO.getName());
+			newGame.setPlatforms(igdbGameDTO.getPlatforms());
+			newGame.setGenres(igdbGameDTO.getGenres());
+			newGame.setImageUrl(
+					"https://images.igdb.com/igdb/image/upload/t_cover_big/" + igdbGameDTO.getCoverUrl() + ".jpg");
+			return gameRepository.save(newGame);
+		});
+
+		if (userGameRepository.findByUserIdAndGameId(userId, game.getId()).isPresent())
+			throw new IllegalStateException("Game is already in your backlog");
+		
+		userGameRepository.findByUserIdAndGameId(userId, game.getId()).orElseGet(() -> {
+			User user = getUserById(userId);
+			UserGame userGame = new UserGame();
+			userGame.setUser(user);
+			userGame.setGame(game);
+			userGame.setStatus("Not Started");
+			return userGameRepository.save(userGame);
+		});
+		return convertToGameDTO(game);
+	}
 
 	public Game editGame(Long gameId, Game game) {
 		Game editedGame = gameRepository.findById(gameId)
@@ -94,6 +107,7 @@ public class GameService {
 		return false;
 	}
 
+	// Method to update a game's status in a user's backlog
 	public boolean updateGameStatus(Long gameId, Long userId, String status) {
 		Optional<UserGame> optionalUserGame = userGameRepository.findByUserIdAndGameId(userId, gameId);
 		if (optionalUserGame.isPresent()) {
@@ -105,25 +119,27 @@ public class GameService {
 		return false;
 	}
 
-	public boolean updateGameRating(Long gameId, Long userId, Double rating) {
-		Optional<UserGame> optionalUserGame = userGameRepository.findByUserIdAndGameId(userId, gameId);
-		UserGame userGame;
-		if (optionalUserGame.isPresent()) {
-			userGame = optionalUserGame.get();
-		} else {
-			// Add the game to the user's backlog if not already present
-			Game game = gameRepository.findById(gameId)
-					.orElseThrow(() -> new IllegalArgumentException("Game not found"));
-			User user = getUserById(userId);
-			userGame = new UserGame();
-			userGame.setUser(user);
-			userGame.setGame(game);
-			userGame.setStatus("Not Started");
-		}
-		userGame.setRating(rating);
-		userGameRepository.save(userGame);
-		return true;
-	}
+	// Method to update a game's rating in a user's backlog
+	// Currently doesn't rate igdb games
+    public boolean updateGameRating(Long gameId, Long userId, Double rating) {
+        Optional<UserGame> optionalUserGame = userGameRepository.findByUserIdAndGameId(userId, gameId);
+        UserGame userGame;
+        if (optionalUserGame.isPresent()) {
+            userGame = optionalUserGame.get();
+        } else {
+            // Add the game to the user's backlog if not already present
+            Game game = gameRepository.findById(gameId)
+                    .orElseThrow(() -> new IllegalArgumentException("Game not found"));
+            User user = getUserById(userId);
+            userGame = new UserGame();
+            userGame.setUser(user);
+            userGame.setGame(game);
+            userGame.setStatus("Not Started");
+        }
+        userGame.setRating(rating);
+        userGameRepository.save(userGame);
+        return true;
+    }
 
 	public Optional<Double> getUserRating(Long gameId, Long userId) {
 		Optional<UserGame> optionalUserGame = userGameRepository.findByUserIdAndGameId(userId, gameId);
@@ -160,6 +176,16 @@ public class GameService {
 
 	public List<Game> getGamesByUserId(Long userId) {
 		return userGameRepository.findByUserId(userId).stream().map(UserGame::getGame).collect(Collectors.toList());
+	}
+
+	// Method to check if a game is in a user's backlog
+	public boolean isGameInUserBacklog(Long gameId, Long userId) {
+		return userGameRepository.findByUserIdAndGameId(userId, gameId).isPresent();
+	}
+
+	// Method to check if a game is in the database
+	public boolean isGameInDatabase(Long igdbGameId) {
+		return gameRepository.findByIgdbGameId(igdbGameId).isPresent();
 	}
 
 	// Helper method to get the current user

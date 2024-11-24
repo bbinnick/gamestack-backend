@@ -48,8 +48,8 @@ public class GameController {
 
 	// Endpoint to add a game
 	@PreAuthorize("hasRole('ADMIN')")
-	@PostMapping("/add")
-	public ResponseEntity<?> addGame(@RequestPart("game") Game game,
+	@PostMapping("/create")
+	public ResponseEntity<?> createGame(@RequestPart("game") Game game,
 			@RequestPart(value = "image", required = false) MultipartFile image) {
 		try {
 			if (game.getTitle() == null || game.getTitle().trim().isEmpty())
@@ -68,13 +68,21 @@ public class GameController {
 			return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
-	
-	// Endpoint to add a game from IGDB
-    @PostMapping("/add-igdb-game")
-    public ResponseEntity<GameDTO> addIgdbGame(@RequestBody IgdbGameDTO igdbGameDTO) {
-        GameDTO gameDTO = gameService.addIgdbGameToUserBacklog(igdbGameDTO);
-        return ResponseEntity.ok(gameDTO);
-    }
+
+	@PostMapping("/add-igdb-game")
+	public ResponseEntity<?> addIgdbGame(@RequestBody IgdbGameDTO igdbGameDTO, Authentication authentication) {
+		if (authentication == null || !(authentication.getPrincipal() instanceof SecurityUser))
+			return new ResponseEntity<>("Unauthorized", HttpStatus.UNAUTHORIZED);
+		SecurityUser userDetails = (SecurityUser) authentication.getPrincipal();
+		try {
+			GameDTO addedGame = gameService.addIgdbGameToUserBacklog(igdbGameDTO, userDetails.getId());
+			return new ResponseEntity<>(addedGame, HttpStatus.OK);
+		} catch (IllegalStateException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
+		} catch (Exception e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
 
 	// Endpoint to add a game to a user's backlog
 	@PostMapping("/add-to-backlog/{gameId}")
@@ -83,6 +91,9 @@ public class GameController {
 			return new ResponseEntity<>("Unauthorized", HttpStatus.UNAUTHORIZED);
 		SecurityUser userDetails = (SecurityUser) authentication.getPrincipal();
 		try {
+			if (gameService.isGameInUserBacklog(gameId, userDetails.getId())) {
+				return new ResponseEntity<>("Game already in backlog", HttpStatus.CONFLICT);
+			}
 			gameService.addGameToUserBacklog(gameId, userDetails.getId());
 			log.info("Game added to backlog: {}", gameId);
 			return new ResponseEntity<>("Game added to backlog", HttpStatus.OK);
