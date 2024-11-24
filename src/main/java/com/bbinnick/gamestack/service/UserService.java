@@ -1,6 +1,8 @@
 package com.bbinnick.gamestack.service;
 
 import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -9,6 +11,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.bbinnick.gamestack.config.JwtProvider;
+import com.bbinnick.gamestack.dto.UserDTO;
 import com.bbinnick.gamestack.dto.UserLoginDTO;
 import com.bbinnick.gamestack.dto.UserRegistrationDTO;
 import com.bbinnick.gamestack.model.User;
@@ -75,11 +78,20 @@ public class UserService {
 		return userRepository.save(user);
 	}
 
-	public List<User> getAllUsers() {
-		return userRepository.findAll();
+	public List<UserDTO> getAllUsers() {
+		return userRepository.findAll().stream().map(this::convertToUserDTO).collect(Collectors.toList());
 	}
 
 	public void deleteUser(Long id) {
 		userRepository.deleteById(id);
+	}
+
+	private UserDTO convertToUserDTO(User user) {
+		UserDTO userDTO = new UserDTO();
+		userDTO.setId(user.getId());
+		userDTO.setUsername(user.getUsername());
+		userDTO.setEmail(user.getEmail());
+		userDTO.setRole(user.getRole());
+		return userDTO;
 	}
 }
