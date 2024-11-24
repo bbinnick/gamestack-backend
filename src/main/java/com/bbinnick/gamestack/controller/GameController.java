@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
@@ -23,6 +24,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.bbinnick.gamestack.auth.SecurityUser;
 import com.bbinnick.gamestack.dto.GameDTO;
+import com.bbinnick.gamestack.dto.IgdbGameDTO;
 import com.bbinnick.gamestack.model.Game;
 import com.bbinnick.gamestack.service.GameService;
 import com.bbinnick.gamestack.service.ImageService;
@@ -66,6 +68,13 @@ public class GameController {
 			return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
+	
+	// Endpoint to add a game from IGDB
+    @PostMapping("/add-igdb-game")
+    public ResponseEntity<GameDTO> addIgdbGame(@RequestBody IgdbGameDTO igdbGameDTO) {
+        GameDTO gameDTO = gameService.addIgdbGameToUserBacklog(igdbGameDTO);
+        return ResponseEntity.ok(gameDTO);
+    }
 
 	// Endpoint to add a game to a user's backlog
 	@PostMapping("/add-to-backlog/{gameId}")

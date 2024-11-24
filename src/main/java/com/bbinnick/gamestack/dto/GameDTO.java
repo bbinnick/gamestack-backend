@@ -11,6 +11,7 @@ import lombok.Setter;
 @Getter
 public class GameDTO {
 	private Long id;
+	private Long igdbGameId;
 	@NotNull(message = "Title cannot be null")
 	@Size(min = 1, message = "Title must have at least 1 character")
 	private String title;

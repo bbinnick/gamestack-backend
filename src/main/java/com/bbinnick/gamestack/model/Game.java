@@ -16,6 +16,7 @@ public class Game {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
+	private Long igdbGameId;
 	private String title;
 	@ElementCollection
 	@CollectionTable(name = "game_platforms", joinColumns = @JoinColumn(name = "game_id"))

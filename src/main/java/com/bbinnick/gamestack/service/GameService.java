@@ -9,6 +9,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import com.bbinnick.gamestack.dto.GameDTO;
+import com.bbinnick.gamestack.dto.IgdbGameDTO;
 import com.bbinnick.gamestack.dto.UserGameDTO;
 import com.bbinnick.gamestack.model.Game;
 import com.bbinnick.gamestack.model.User;
@@ -36,7 +37,7 @@ public class GameService {
 		return gameRepository.save(game);
 	}
 
-	// Method to add an existing game to a specific user's backlog
+	// Method to add a manually created game to a specific user's backlog
 	public void addGameToUserBacklog(Long gameId, Long userId) {
 		Game game = gameRepository.findById(gameId).orElseThrow(() -> new IllegalArgumentException("Game not found"));
 		User user = getUserById(userId);
@@ -50,6 +51,18 @@ public class GameService {
 		}
 		// add alert if game is already in user's backlog
 	}
+	
+	// Method to add an IGDB game to the database
+    public GameDTO addIgdbGameToUserBacklog(IgdbGameDTO igdbGameDTO) {
+        Game game = new Game();
+        game.setIgdbGameId(igdbGameDTO.getId());
+        game.setTitle(igdbGameDTO.getName());
+        game.setPlatforms(igdbGameDTO.getPlatforms());
+        game.setGenres(igdbGameDTO.getGenres());
+        game.setImageUrl("https://images.igdb.com/igdb/image/upload/t_cover_big/" + igdbGameDTO.getCoverUrl() + ".jpg");
+        Game savedGame = gameRepository.save(game);
+        return convertToGameDTO(savedGame);
+    }
 
 	public Game editGame(Long gameId, Game game) {
 		Game editedGame = gameRepository.findById(gameId)
@@ -123,6 +136,7 @@ public class GameService {
 		return gameRepository.findAll().stream().map(game -> {
 			GameDTO dto = new GameDTO();
 			dto.setId(game.getId());
+			dto.setIgdbGameId(game.getIgdbGameId());
 			dto.setTitle(game.getTitle());
 			dto.setPlatforms(game.getPlatforms());
 			dto.setGenres(game.getGenres());
@@ -158,6 +172,7 @@ public class GameService {
 	public GameDTO convertToGameDTO(Game game) {
 		GameDTO gameDTO = new GameDTO();
 		gameDTO.setId(game.getId());
+		gameDTO.setIgdbGameId(game.getIgdbGameId());
 		gameDTO.setTitle(game.getTitle());
 		gameDTO.setPlatforms(game.getPlatforms());
 		gameDTO.setGenres(game.getGenres());
