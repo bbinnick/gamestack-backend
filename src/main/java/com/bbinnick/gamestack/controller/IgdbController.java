@@ -28,12 +28,6 @@ public class IgdbController {
 		return igdbService.getGames(query).map(ResponseEntity::ok).defaultIfEmpty(ResponseEntity.notFound().build());
 	}
 
-//	@GetMapping("/games/details/{gameId}")
-//	public Mono<ResponseEntity<String>> getIgdbGameDetails(@PathVariable Long gameId) {
-//		return igdbService.getGameById(gameId).map(ResponseEntity::ok)
-//				.defaultIfEmpty(ResponseEntity.notFound().build());
-//	}
-
 	@GetMapping("/games/details/{gameId}")
 	public Mono<ResponseEntity<IgdbGameDTO>> getIgdbGameDetails(@PathVariable Long gameId) {
 		return igdbService.getGameById(gameId).map(response -> {
