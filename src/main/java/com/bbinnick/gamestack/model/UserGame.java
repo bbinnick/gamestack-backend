@@ -25,6 +25,7 @@ public class UserGame {
 	private Game game;
 	private String status = "Not Started"; // Track individual status for the game, e.g. Not Started", "In Progress", "Completed".
 	private Double rating;
+	private String review;
 	private LocalDate addedOn;
 
 	@PrePersist

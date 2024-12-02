@@ -65,7 +65,7 @@ public class GameService {
 
 		if (userGameRepository.findByUserIdAndGameId(userId, game.getId()).isPresent())
 			throw new IllegalStateException("Game is already in your backlog");
-		
+
 		userGameRepository.findByUserIdAndGameId(userId, game.getId()).orElseGet(() -> {
 			User user = getUserById(userId);
 			UserGame userGame = new UserGame();
@@ -119,27 +119,28 @@ public class GameService {
 		return false;
 	}
 
-	// Method to update a game's rating in a user's backlog
-	// Currently doesn't rate igdb games
-    public boolean updateGameRating(Long gameId, Long userId, Double rating) {
-        Optional<UserGame> optionalUserGame = userGameRepository.findByUserIdAndGameId(userId, gameId);
-        UserGame userGame;
-        if (optionalUserGame.isPresent()) {
-            userGame = optionalUserGame.get();
-        } else {
-            // Add the game to the user's backlog if not already present
-            Game game = gameRepository.findById(gameId)
-                    .orElseThrow(() -> new IllegalArgumentException("Game not found"));
-            User user = getUserById(userId);
-            userGame = new UserGame();
-            userGame.setUser(user);
-            userGame.setGame(game);
-            userGame.setStatus("Not Started");
-        }
-        userGame.setRating(rating);
-        userGameRepository.save(userGame);
-        return true;
-    }
+	// Method to update a game's rating and review in a user's backlog.
+	// Unable to update from details page currently.
+	public boolean updateGameRatingAndReview(Long gameId, Long userId, Double rating, String review) {
+		Optional<UserGame> optionalUserGame = userGameRepository.findByUserIdAndGameId(userId, gameId);
+		UserGame userGame;
+		if (optionalUserGame.isPresent()) {
+			userGame = optionalUserGame.get();
+		} else {
+			// Add the game to the user's backlog if not already present
+			Game game = gameRepository.findById(gameId)
+					.orElseThrow(() -> new IllegalArgumentException("Game not found"));
+			User user = getUserById(userId);
+			userGame = new UserGame();
+			userGame.setUser(user);
+			userGame.setGame(game);
+			userGame.setStatus("Not Started");
+		}
+		userGame.setRating(rating);
+		userGame.setReview(review);
+		userGameRepository.save(userGame);
+		return true;
+	}
 
 	public Optional<Double> getUserRating(Long gameId, Long userId) {
 		Optional<UserGame> optionalUserGame = userGameRepository.findByUserIdAndGameId(userId, gameId);

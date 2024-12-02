@@ -162,25 +162,26 @@ public class GameController {
 		return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 	}
 
-	// Endpoint to rate a game
-	@PostMapping("/{gameId}/rate")
-	public ResponseEntity<?> rateGame(@PathVariable Long gameId, @RequestParam Double rating,
-			Authentication authentication) {
-		if (authentication == null || !(authentication.getPrincipal() instanceof SecurityUser))
-			return new ResponseEntity<>("Unauthorized", HttpStatus.UNAUTHORIZED);
-		SecurityUser userDetails = (SecurityUser) authentication.getPrincipal();
-		try {
-			boolean isRated = gameService.updateGameRating(gameId, userDetails.getId(), rating);
-			if (isRated) {
-				log.info("Game rated: {} with rating {}", gameId, rating);
-				return new ResponseEntity<>("Game rated successfully", HttpStatus.OK);
-			} else {
-				return new ResponseEntity<>("Game not found in user's backlog", HttpStatus.NOT_FOUND);
-			}
-		} catch (Exception e) {
-			return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-		}
-	}
+	// Endpoint to rate and review a game
+    @PostMapping("/{gameId}/rate-and-review")
+    public ResponseEntity<?> rateAndReviewGame(@PathVariable Long gameId, @RequestParam Double rating,
+                                               @RequestParam String review, Authentication authentication) {
+        if (authentication == null || !(authentication.getPrincipal() instanceof SecurityUser))
+            return new ResponseEntity<>("Unauthorized", HttpStatus.UNAUTHORIZED);
+        SecurityUser userDetails = (SecurityUser) authentication.getPrincipal();
+        try {
+            boolean isRated = gameService.updateGameRatingAndReview(gameId, userDetails.getId(), rating, review);
+            if (isRated) {
+                log.info("Game rated and reviewed: {} with rating {} and review {}", gameId, rating, review);
+                return new ResponseEntity<>("Game rated and reviewed successfully", HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>("Game not found in user's backlog", HttpStatus.NOT_FOUND);
+            }
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
 
 	@GetMapping("/{gameId}/user-rating")
 	public ResponseEntity<?> getUserRating(@PathVariable Long gameId, Authentication authentication) {
