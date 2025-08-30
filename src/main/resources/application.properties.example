@@ -1,4 +1,3 @@
-# Safe template (commit this). Copy to application.properties locally and fill secrets.
 spring.application.name=GameStack
 
 # Database configuration
