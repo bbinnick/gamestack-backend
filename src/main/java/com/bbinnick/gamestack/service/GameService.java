@@ -1,6 +1,8 @@
 package com.bbinnick.gamestack.service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -147,6 +149,16 @@ public class GameService {
 		return optionalUserGame.map(UserGame::getRating);
 	}
 
+	// New: return user's rating AND review for a given game (if present)
+	public Optional<Map<String, Object>> getUserRatingAndReview(Long gameId, Long userId) {
+		return userGameRepository.findByUserIdAndGameId(userId, gameId).map(userGame -> {
+			Map<String, Object> ratingReview = new HashMap<>();
+			ratingReview.put("rating", userGame.getRating());
+			ratingReview.put("review", userGame.getReview() != null ? userGame.getReview() : "");
+			return ratingReview;
+		});
+	}
+
 	// List all games with the users who have them in their backlog - not sure if
 	// this is needed
 	public List<GameDTO> listAllGamesWithUsers() {
@@ -169,6 +181,16 @@ public class GameService {
 			game.setUserGames(null);
 			return game;
 		}).collect(Collectors.toList());
+	}
+
+	// convenience: return GameDTO if present
+	public Optional<GameDTO> findGameDTOByIgdbId(Long igdbId) {
+		return findByIgdbId(igdbId).map(this::convertToGameDTO);
+	}
+
+	// find Game entity by IGDB id
+	public Optional<Game> findByIgdbId(Long igdbId) {
+		return gameRepository.findByIgdbGameId(igdbId);
 	}
 
 	public Game getGameById(Long gameId) {

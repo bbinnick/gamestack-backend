@@ -163,25 +163,36 @@ public class GameController {
 	}
 
 	// Endpoint to rate and review a game
-    @PostMapping("/{gameId}/rate-and-review")
-    public ResponseEntity<?> rateAndReviewGame(@PathVariable Long gameId, @RequestParam Double rating,
-                                               @RequestParam String review, Authentication authentication) {
-        if (authentication == null || !(authentication.getPrincipal() instanceof SecurityUser))
-            return new ResponseEntity<>("Unauthorized", HttpStatus.UNAUTHORIZED);
-        SecurityUser userDetails = (SecurityUser) authentication.getPrincipal();
-        try {
-            boolean isRated = gameService.updateGameRatingAndReview(gameId, userDetails.getId(), rating, review);
-            if (isRated) {
-                log.info("Game rated and reviewed: {} with rating {} and review {}", gameId, rating, review);
-                return new ResponseEntity<>("Game rated and reviewed successfully", HttpStatus.OK);
-            } else {
-                return new ResponseEntity<>("Game not found in user's backlog", HttpStatus.NOT_FOUND);
-            }
-        } catch (Exception e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
+	@PostMapping("/{gameId}/rate-and-review")
+	public ResponseEntity<?> rateAndReviewGame(@PathVariable Long gameId, @RequestParam Double rating,
+			@RequestParam String review, Authentication authentication) {
+		if (authentication == null || !(authentication.getPrincipal() instanceof SecurityUser))
+			return new ResponseEntity<>("Unauthorized", HttpStatus.UNAUTHORIZED);
+		SecurityUser userDetails = (SecurityUser) authentication.getPrincipal();
+		try {
+			boolean isRated = gameService.updateGameRatingAndReview(gameId, userDetails.getId(), rating, review);
+			if (isRated) {
+				log.info("Game rated and reviewed: {} with rating {} and review: {}", gameId, rating, review);
+				return new ResponseEntity<>("Game rated and reviewed successfully", HttpStatus.OK);
+			} else {
+				return new ResponseEntity<>("Game not found in user's backlog", HttpStatus.NOT_FOUND);
+			}
+		} catch (Exception e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
 
+	// Endpoint to find internal game by IGDB id
+	@GetMapping("/igdb/{igdbId}")
+	public ResponseEntity<?> getGameByIgdbId(@PathVariable Long igdbId) {
+		try {
+			return gameService.findGameDTOByIgdbId(igdbId).map(ResponseEntity::ok)
+					.orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+		} catch (Exception e) {
+			log.error("Error finding game by IGDB id {}", igdbId, e);
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
 
 	@GetMapping("/{gameId}/user-rating")
 	public ResponseEntity<?> getUserRating(@PathVariable Long gameId, Authentication authentication) {
@@ -193,6 +204,21 @@ public class GameController {
 			return new ResponseEntity<>(Collections.singletonMap("rating", rating.get()), HttpStatus.OK);
 		}
 		return new ResponseEntity<>(Collections.singletonMap("message", "Game has not been rated yet"), HttpStatus.OK);
+	}
+
+	// Endpoint to get both user rating and review for a game
+	@GetMapping("/{gameId}/user-rating-review")
+	public ResponseEntity<?> getUserRatingAndReview(@PathVariable Long gameId, Authentication authentication) {
+		if (authentication == null || !(authentication.getPrincipal() instanceof SecurityUser))
+			return new ResponseEntity<>("Unauthorized", HttpStatus.UNAUTHORIZED);
+		SecurityUser userDetails = (SecurityUser) authentication.getPrincipal();
+		try {
+			return gameService.getUserRatingAndReview(gameId, userDetails.getId()).map(ResponseEntity::ok).orElseGet(
+					() -> new ResponseEntity<>(Collections.singletonMap("message", "Game has not been rated yet"),
+							HttpStatus.OK));
+		} catch (Exception e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 	}
 
 	// Endpoint to show a single user's games
