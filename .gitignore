@@ -32,3 +32,8 @@ build/
 ### VS Code ###
 .vscode/
 /uploads/
+
+# local secrets and uncommitted app config
+.environment
+.env
+/src/main/resources/application.properties
